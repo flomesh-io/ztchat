@@ -1,8 +1,8 @@
 export default [
 	{
 		// get room list by mesh
-		type: "get",
-		url: "/api/meshes/:mesh/rooms",
+		method: "get",
+		url: "/mock/api/meshes/:mesh/rooms",
 		response: () => {
 			return [{
 				id: 1,
@@ -34,8 +34,8 @@ export default [
 	},
 	{
 		// get room detail by room id
-		type: "get",
-		url: "/api/meshes/:mesh/rooms/:room",
+		method: "get",
+		url: "/mock/api/meshes/:mesh/rooms/:room",
 		response: () => {
 			return {
 				id: 1,
@@ -55,8 +55,8 @@ export default [
 	},
 	{
 		// push message by room id
-		type: "post",
-		url: "/api/meshes/:mesh/rooms/:room/send",
+		method: "post",
+		url: "/mock/api/meshes/:mesh/rooms/:room/send",
 		response: () => {
 			/* if File or Image, need upload ref<File> */
 			return {
@@ -76,25 +76,33 @@ export default [
 		}
 	},
 	{
+		// mark read by room
+		method: "post",
+		url: "/mock/api/meshes/:mesh/rooms/:room/read",
+		response: () => {
+			return true
+		}
+	},
+	{
 		// delete room by id
-		type: "delete",
-		url: "/api/meshes/:mesh/rooms/:room",
+		method: "delete",
+		url: "/mock/api/meshes/:mesh/rooms/:room",
 		response: () => {
 			return true
 		}
 	},
 	{
 		// delete message by message id
-		type: "delete",
-		url: "/api/meshes/:mesh/rooms/:room/history/:id",
+		method: "delete",
+		url: "/mock/api/meshes/:mesh/rooms/:room/history/:id",
 		response: () => {
 			return true
 		}
 	},
 	{
 		// get files by room (manage files)
-		type: "get",
-		url: "/api/meshes/:mesh/rooms/:room/files",
+		method: "get",
+		url: "/mock/api/meshes/:mesh/rooms/:room/files",
 		response: () => {
 			return [
 				{	id:2,files:[{"src": "https://flomesh.io/img/flomesh.png", "type": "image"}], time: new Date().getTime(), endpoint:"fb4209bc-59d5-4129-a7d3-3b9452a732aa" },

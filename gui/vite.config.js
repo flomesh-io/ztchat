@@ -29,22 +29,25 @@ export default defineConfig(async (config) => ({
       '/api': {
         target: `http://0.0.0.0:${loadEnv(config.mode, process.cwd()).VITE_APP_API_PORT}/`,
         changeOrigin: true,
-      },
+      }
     }
   },
   plugins: [
     vue({reactivityTransform: true}),
 		viteMockServe({
-			enable: false,
-			localEnabled: config.command === 'serve',
-			prodEnabled: config.command !== 'serve',
+			enable: true,
+			localEnabled: true,
+			prodEnabled: false,
 			injectCode: `
 				import { setupProdMockServer } from './mockProdServer';
 				setupProdMockServer();
 			`,
 			supportTs: false,
 			logger: false,
-			mockPath: "./mock/"
+			mockPath: "./mock/",
+			pathRewrite: {
+				'^/mock': '',
+			},
 		}),
   ],
   resolve: {
