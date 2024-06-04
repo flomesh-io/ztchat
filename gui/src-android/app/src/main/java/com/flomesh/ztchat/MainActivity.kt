@@ -1,4 +1,4 @@
-package com.flomesh.ztm
+package com.flomesh.ztchat
 
 import android.os.Bundle
 import android.content.Intent

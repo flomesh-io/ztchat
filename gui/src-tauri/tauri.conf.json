@@ -1,7 +1,7 @@
 {
-  "productName": "ZTM",
+  "productName": "ZTChat",
   "version": "0.0.4",
-  "identifier": "com.flomesh.ztm",
+  "identifier": "com.flomesh.ztchat",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
     "windows": [
       {
 				"dragDropEnabled": false,
-        "title": "ZTM",
+        "title": "ZTChat",
         "width": 455,
         "height": 350,
         "resizable": false,
