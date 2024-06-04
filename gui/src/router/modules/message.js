@@ -6,7 +6,7 @@ const message = {
 		{
 				path: '/message/list',
 				name: 'message',
-				component: () => import('@/views.chat/message/MessageList.vue')
+				component: () => import('@/views/message/MessageList.vue')
 		},
   ],
 };

@@ -1,8 +1,5 @@
 import _ from "lodash";
-import message from "./modules.chat/message";
-// import server from "./modules/server";
-// import pages from "./modules/pages";
-// import uikit from "./modules/uikit";
+import message from "./modules/message";
 import mesh from "./modules/mesh";
 import AppLayout from '@/layout/AppLayout.vue';
 
@@ -28,12 +25,6 @@ const options = {
 		    name: 'error',
 		    component: () => import('@/views/pages/auth/Error.vue')
 		},
-		
-		// {
-		//   path: "/landing",
-		//   name: "landing",
-		// 	component: () => import('@/views/pages/Landing.vue')
-		// },
 		{
 		    path: '/root',
 		    name: 'Root',
@@ -49,11 +40,8 @@ const options = {
 					{
 							path: '/workplace',
 							name: 'Workplace',
-							component: () => import('@/views.chat/Workplace.vue')
+							component: () => import('@/views/Workplace.vue')
 					},
-					// server,
-					// pages,
-					// uikit
 				]
     },
   ],
