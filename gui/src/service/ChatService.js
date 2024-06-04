@@ -5,4 +5,7 @@ export default class ChatService {
 	getRooms(mesh) {
 		return request(`/mock/api/meshes/${mesh}/rooms`);
 	}
+	getRoomDetail({mesh,room}) {
+		return request(`/mock/api/meshes/${mesh}/rooms/${room}`);
+	}
 }

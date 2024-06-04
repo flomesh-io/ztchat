@@ -1,9 +1,8 @@
 <script setup>
 import { ref, onMounted,onActivated,watch, computed } from "vue";
+import ChatService from '@/service/ChatService';
+import { useStore } from 'vuex';
 import 'deep-chat';
-const emits = defineEmits(['back']);
-const props = defineProps(['ep']);
-const demoImg = "https://flomesh.io/img/flomesh.png"
 /*
 	{"files": [{
 		src: "data:image/gif;base64...",
@@ -15,15 +14,70 @@ const demoImg = "https://flomesh.io/img/flomesh.png"
 		type: "any"
 	}], "role": "ai"},
 */
-const initialMessages = ref([
-	{"text": "Hey, how are you?", "role": "user"},
-	{"text": "Hey, how are you?", "role": "ai"},
-	{"files": [{"src": demoImg, "type": "image"}], "role": "user"},
-	{"text": "What is the meaning of life?", "role": "user"},
-	{"text": "```java\nwhile (i < 5) {\n console.log(\"hi\");\n i+= 1;\n}\n```", "role": "ai"}
-]);
-const user = ref({ id: '123', name: 'John Doe' })
+const emits = defineEmits(['back']);
+const props = defineProps(['target','pid']);
+const store = useStore();
+const chatService = new ChatService();
+const initialMessages = ref([]);
+const selectedMesh = computed(() => {
+	return store.getters["account/selectedMesh"]
+});
 
+const chat = ref(null);
+const chatReady = ref(false)
+const chatRender = (e)=>{
+	chat.value.scrollToBottom();
+	chat.value.focusInput();
+	if(!chatReady.value){
+		chatReady.value = true;
+		loaddata();
+	}
+}
+const sendMessage = (e) => {
+	if(!e.detail.isInitial){
+		//post initialMessages.value.push(e.detail.message)
+		console.log(e.detail.message)
+	}
+}
+const loaddata = () => {
+	const _initialMessages = [];
+	if(!!props.target?.pid){
+		chatService.getRoomDetail({
+			mesh: selectedMesh.value?.name,
+			room: props.target?.pid
+		}).then(res=>{
+			if(!!chatReady.value){
+				chat.value.clearMessages();
+			}
+			if(res.history){
+				res.history.forEach(msg=>{
+					// alert(2)
+					_initialMessages.push({
+						...msg,
+						"role": msg.endpoint == selectedMesh.value?.agent?.id ? 'user' : 'ai'
+					})
+				})
+			}
+			if(!!chatReady.value){
+				initialMessages.value = _initialMessages;
+				chat.value.refreshMessages();
+			}
+		});
+	} else {
+		if(!!chatReady.value){
+			chat.value.clearMessages();
+			initialMessages.value = [];
+			chat.value.refreshMessages();
+		}
+		
+	}
+}
+watch(()=>props.target,()=>{
+	loaddata()
+},{
+	deep:true,
+	immediate:false,
+})
 const handleFileUpload = (file) => {
 }
 const windowHeight = ref(window.innerHeight);
@@ -126,29 +180,13 @@ const inputStyle = computed(() => {
 	}
 })
 const hasMediaDevices = computed(() => !!navigator.mediaDevices);
-const chat = ref(null);
-const chatRender = (e)=>{
-	chat.value.scrollToBottom();
-	chat.value.focusInput();
-}
-const sendMessage = (e) => {
-	if(!e.detail.isInitial){
-		initialMessages.value.push(e.detail.message)
-		console.log(e.detail.message)
-	}
-}
-onActivated(()=>{
-});
-onMounted(()=>{
-	// chat.value.focusInput();
-})
 </script>
 
 <template>
 	<AppHeader :back="back">
-	    <template #center>
-				<Status :run="true" />
-	      <b>client (root)</b>
+	    <template #center v-if="props.target?.ep">
+				<Status :run="props.target.ep?.online" />
+	      <b>{{props.target.ep?.name}} ({{props.target.ep?.username}})</b>
 	    </template>
 	
 	    <template #end> 

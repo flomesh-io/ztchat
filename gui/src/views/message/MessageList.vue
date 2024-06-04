@@ -31,10 +31,6 @@ const selectedMesh = computed(() => {
 	return store.getters["account/selectedMesh"]
 });
 const rooms = ref([
-	{"text": "Hey, how are you?", "role": "user"},
-	{"text": "I am doing great, thanks.", "role": "ai"},
-	{"text": "What is the meaning of life?", "role": "user"},
-	{"text": "Seeking fulfillment and personal growth.", "role": "ai"}
 ]);
 onMounted(()=>{
 	getEndpoints();
@@ -46,7 +42,11 @@ onActivated(()=>{
 })
 const endpointMap = ref({});
 const getEndpoints = () => {
-	endpointMap.value = { "mock": { id:"mock",name:"client",username:"root" } };
+	endpointMap.value = { 
+		"a": { id:"a",name:"User A",username:"Tom",online:true } ,
+		"b": { id:"b",name:"User B",username:"Jerry",online:true } ,
+		"c": { id:"c",name:"User C",username:"Cat",online:false } ,
+	};
 	pipyProxyService.getEndpoints(selectedMesh.value?.name)
 		.then(res => {
 			res.forEach(ep=>{
@@ -61,11 +61,7 @@ const loadrooms = () => {
 		rooms.value = res;
 	});
 }
-const user = ref({ id: '123', name: 'John Doe' })
 
-const sendMessage = (text) => {
-	alert(text)
-}
 const handleFileUpload = (file) => {
 }
 const windowHeight = ref(window.innerHeight);
@@ -90,12 +86,12 @@ const toggleLeft = () => {
 				</template>
 		
 				<template #end> 
-					<Button icon="pi pi-plus"  @click="selectRoom = 1" />
+					<Button icon="pi pi-plus"  @click="selectRoom = { ep:endpointMap['c'] }" />
 				</template>
 		</AppHeader>
 		<DataView class="message-list" :value="rooms">
 		    <template #list="slotProps">
-		        <div @click="selectRoom = 1" class="flex flex-col message-item pointer" v-for="(item, index) in slotProps.items" :key="index">
+		        <div @click="selectRoom = { pid: item?.id, ep:endpointMap[item.target?.ep||item.target?.eps[0]] }" class="flex flex-col message-item pointer" v-for="(item, index) in slotProps.items" :key="index">
 							<div class="flex flex-col py-3 px-3 gap-4 w-full" :class="{ 'border-t border-surface-200 dark:border-surface-700': index !== 0 }">
 									<div class="md:w-40 relative">
 										<Badge v-if="item.unread>0" :value="item.unread" severity="danger" class="absolute" style="right: -10px;top:-10px"/>
@@ -103,17 +99,17 @@ const toggleLeft = () => {
 										
 									</div>
 									<div class="flex-item">
-											<div class="flex mt-1">
-												<div class="flex-item" v-if="endpointMap['mock']">
-													<b>{{endpointMap['mock'].name}} ({{endpointMap['mock'].username}})</b>
+											<div class="flex" v-if="item.target">
+												<div class="flex-item" v-if="endpointMap[item.target?.ep||item.target?.eps[0]]">
+													<b>{{endpointMap[item.target?.ep||item.target?.eps[0]].name}} ({{endpointMap[item.target?.ep||item.target?.eps[0]].username}})</b>
 												</div>
 												<Status :run="true" style="top: 7px;margin-right: 0;right: -10px;"/>
 											</div>
 											<div class="flex mt-1">
-												<div class="text-ellipsis flex-item">
-													{{item.last?.text}}
+												<div class="flex-item" >
+													<div class="w-10rem text-ellipsis">{{item.last?.text}}</div>
 												</div>
-												<div class="w-3rem text-right text-tip opacity-60">
+												<div class="w-3rem text-right text-tip opacity-60" >
 													{{timeago(item.last?.time)}}
 												</div>
 											</div>
@@ -125,7 +121,7 @@ const toggleLeft = () => {
 		</div>
 		<div v-if="selectRoom" class="flex-item">
 			<div class="shadow mobile-fixed" >
-				<Chat @back="() => selectRoom=false"/>
+				<Chat :target="selectRoom" @back="() => selectRoom=false"/>
 			</div>
 		</div>
 	</div>

@@ -9,7 +9,7 @@ export default [
 				target: {
 					type: 'single',
 					//value is endpoint id
-					value: "fb4209bc-59d5-4129-a7d3-3b9452a732aa"
+					ep: "a"
 				},
 				unread:2,
 				last:{
@@ -19,9 +19,21 @@ export default [
 			},{
 				id: 2,
 				target: {
+					type: 'single',
+					//value is endpoint id
+					ep: "b"
+				},
+				unread:2,
+				last:{
+					text:'Are your work going smoothly?',
+					time: new Date().getTime()
+				}
+			},{
+				id: 2,
+				target: {
 					type: 'group',
 					//value is endpoint id
-					value: ["fb4209bc-59d5-4129-a7d3-3b9452a732aa","fb4209bc-59d5-4129-a7d3-3b9452a732aa"]
+					eps: ["a","b"]
 				},
 				unread:10,
 				last:{
@@ -36,20 +48,38 @@ export default [
 		// get room detail by room id
 		method: "get",
 		url: "/mock/api/meshes/:mesh/rooms/:room",
-		response: () => {
-			return {
-				id: 1,
-				target: {
-					type: 'single',
-					//value is endpoint id
-					value: "fb4209bc-59d5-4129-a7d3-3b9452a732aa"
-				},
-				history: [
-					{	id:1,text:'Hey, how are you?', time: new Date().getTime(), endpoint:"fb4209bc-59d5-4129-a7d3-3b9452a732aa" },
-					{	id:2,files:[{"src": "https://flomesh.io/img/flomesh.png", "type": "image"}], time: new Date().getTime(), endpoint:"fb4209bc-59d5-4129-a7d3-3b9452a732aa" },
-					{	id:3,files:[{"src": "test.txt", "type": "any"}], time: new Date().getTime(), endpoint:"fb4209bc-59d5-4129-a7d3-3b9452a732aa" },
-					{	id:4,text:'Seeking fulfillment and personal growth.', time: new Date().getTime(), endpoint:"fb4209bc-59d5-4129-a7d3-3b9452a732aa" },
-				]
+		response: ({query}) => {
+			console.log(query)
+			if(query.room == 1){
+				return {
+					id: 1,
+					target: {
+						type: 'single',
+						//value is endpoint id
+						value: "a"
+					},
+					history: [
+						{	id:1,text:'Hey, how are you?', time: new Date().getTime(), endpoint:"a" },
+						{	id:2,files:[{"src": "https://flomesh.io/img/flomesh.png", "type": "image"}], time: new Date().getTime(), endpoint:"fb4209bc-59d5-4129-a7d3-3b9452a732aa" },
+						{	id:3,files:[{"src": "test.txt", "type": "any"}], time: new Date().getTime(), endpoint:"a" },
+						{	id:4,text:'Seeking fulfillment and personal growth.', time: new Date().getTime(), endpoint:"fb4209bc-59d5-4129-a7d3-3b9452a732aa" },
+						{	id:5,text:'```java\nwhile (i < 5) {\n console.log(\"hi\");\n i+= 1;\n}\n```', time: new Date().getTime(), endpoint:"a" },
+					]
+				}
+			} else {
+				return {
+					id: 2,
+					target: {
+						type: 'single',
+						//value is endpoint id
+						value: "b"
+					},
+					history: [
+						{	id:1,text:'This is my home.', time: new Date().getTime(), endpoint:"b" },
+						{	id:3,files:[{"src": "test.txt", "type": "any"}], time: new Date().getTime(), endpoint:"fb4209bc-59d5-4129-a7d3-3b9452a732aa" },
+						{	id:4,text:'Seeking fulfillment and personal growth.', time: new Date().getTime(), endpoint:"b" },
+					]
+				}
 			}
 		}
 	},
