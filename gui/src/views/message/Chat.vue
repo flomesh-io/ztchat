@@ -14,7 +14,7 @@ import 'deep-chat';
 		type: "any"
 	}], "role": "ai"},
 */
-const emits = defineEmits(['back']);
+const emits = defineEmits(['back','ep']);
 const props = defineProps(['target','pid']);
 const store = useStore();
 const chatService = new ChatService();
@@ -180,6 +180,9 @@ const inputStyle = computed(() => {
 	}
 })
 const hasMediaDevices = computed(() => !!navigator.mediaDevices);
+const openEp = () => {
+	emits('ep',props.target?.ep);
+}
 </script>
 
 <template>
@@ -191,7 +194,7 @@ const hasMediaDevices = computed(() => !!navigator.mediaDevices);
 	
 	    <template #end> 
 				<Button icon="pi pi-print" class="mr-2" severity="secondary" text />
-				<Button icon="pi pi-user" severity="secondary" text />
+				<Button icon="pi pi-user" @click="openEp" severity="secondary" text />
 			</template>
 	</AppHeader>
 	<div style="width: 100%;height: calc(100vh - 37px);flex: 1;margin: 0;display: flex;flex-direction: column;">

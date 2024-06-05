@@ -4,6 +4,7 @@ import { useStore } from 'vuex';
 import Chat from "./Chat.vue"
 import dayjs from 'dayjs';
 import ChatService from '@/service/ChatService';
+import EndpointDetail from '../mesh/EndpointDetail.vue'
 import PipyProxyService from '@/service/PipyProxyService';
 import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.locale('en', {
@@ -41,6 +42,7 @@ onActivated(()=>{
 	loadrooms();
 })
 const endpointMap = ref({});
+const endpoints = ref([]);
 const getEndpoints = () => {
 	endpointMap.value = { 
 		"a": { id:"a",name:"User A",username:"Tom",online:true } ,
@@ -51,7 +53,16 @@ const getEndpoints = () => {
 		.then(res => {
 			res.forEach(ep=>{
 				endpointMap.value[ep.id] = ep;
-			})
+			});
+			endpoints.value = res || [];
+			endpoints.value.forEach((ep,ei)=>{
+				ep.key = ep.id;
+				ep.index = ei;
+				ep.type = "ep";
+				ep.label = `${ep?.name} (${ep?.username})`;
+				ep.icon = "pi pi-user";
+				ep.loading = false;
+			});
 		})
 		.catch(err => console.log('Request Failed', err)); 
 }
@@ -70,9 +81,21 @@ const timeago = computed(() => (ts) => {
 	const date = new Date(ts);
 	return dayjs(date).fromNow();
 })
-const selectRoom = ref()
-const toggleLeft = () => {
-	store.commit('account/setMobileLeftbar', !store.getters['account/mobileLeftbar']);
+const selectRoom = ref();
+const selectEp = ref();
+const visibleEpSelect = ref(false);
+const selectedNewChatEp = ref({});
+const newChat = () => {
+	const eps = Object.keys(selectedNewChatEp.value);
+	const roomid = eps.join(",");
+	const findroom = rooms.value.filter(room => room.id == roomid);
+	if(!!findroom){
+		selectRoom.value = { pid: findroom?.id, ep:endpointMap.value[eps[0]] }
+	} else {
+		selectRoom.value = { ep: endpointMap.value[eps[0]] };
+	}
+	selectedNewChatEp.value = {};
+	visibleEpSelect.value = false;
 }
 </script>
 
@@ -86,9 +109,28 @@ const toggleLeft = () => {
 				</template>
 		
 				<template #end> 
-					<Button icon="pi pi-plus"  @click="selectRoom = { ep:endpointMap['c'] }" />
+					<Button icon="pi pi-plus"  @click="visibleEpSelect = true" />
 				</template>
 		</AppHeader>
+		<Dialog class="noheader" v-model:visible="visibleEpSelect" modal header="New chat" :style="{ width: '25rem' }">
+				<AppHeader :back="() => visibleEpSelect = false" :main="false">
+						<template #center>
+							<b>New Chat<Badge class="ml-2 relative" style="top:-2px" v-if="Object.keys(selectedNewChatEp).length>0" :value="Object.keys(selectedNewChatEp).length"/></b>
+						</template>
+				
+						<template #end> 
+							<Button icon="pi pi-check" @click="newChat" :disabled="Object.keys(selectedNewChatEp).length==0"/>
+						</template>
+				</AppHeader>
+				<Tree :filter="true" filterMode="lenient" v-model:selectionKeys="selectedNewChatEp" :value="endpoints" selectionMode="checkbox" class="w-full md:w-[30rem]">
+					<template #nodeicon="slotProps">
+							<Avatar icon="pi pi-user" size="small" style="background-color: #ece9fc; color: #2a1261" />
+					</template>
+					<template #default="slotProps">
+							<b class="px-2">{{ slotProps.node.label }}</b>
+					</template>
+				</Tree>
+		</Dialog>
 		<DataView class="message-list" :value="rooms">
 		    <template #list="slotProps">
 		        <div @click="selectRoom = { pid: item?.id, ep:endpointMap[item.target?.ep||item.target?.eps[0]] }" class="flex flex-col message-item pointer" v-for="(item, index) in slotProps.items" :key="index">
@@ -119,9 +161,14 @@ const toggleLeft = () => {
 		    </template>
 		</DataView>
 		</div>
-		<div v-if="selectRoom" class="flex-item">
+		<div class="flex-item" v-if="!!selectEp">
+			<div class="shadow mobile-fixed">
+				<EndpointDetail @back="() => selectEp=false" :ep="selectEp"/>
+			</div>
+		</div>
+		<div v-else-if="selectRoom" class="flex-item">
 			<div class="shadow mobile-fixed" >
-				<Chat :target="selectRoom" @back="() => selectRoom=false"/>
+				<Chat :target="selectRoom" @back="() => selectRoom=false" @ep="(ep) => selectEp = ep"/>
 			</div>
 		</div>
 	</div>
