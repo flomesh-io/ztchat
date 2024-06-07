@@ -5,6 +5,7 @@ export default [
 		url: "/mock/api/meshes/:mesh/rooms",
 		response: () => {
 			return [{
+				// single is ep id
 				id: 1,
 				target: {
 					type: 'single',
@@ -29,6 +30,7 @@ export default [
 					time: new Date().getTime()
 				}
 			},{
+				// group id custom
 				id: 2,
 				target: {
 					type: 'group',
