@@ -112,10 +112,29 @@ async function requestNM(url, method, params, config) {
 		});
 	}
 }
-async function mock(d) {
-  return new Promise((resolve) => {
-		resolve(d);
-	});
+
+function mockUrl(url){
+	return `/mock${url}`
+}
+async function mock(url, method, params, config) {
+	switch (method) {
+		case METHOD.GET:
+			return axios.get(mockUrl(url), { params, ...config }).then((res) => res?.data);
+		case METHOD.POST:
+			return axios.post(mockUrl(url), params, config).then((res) => res?.data).catch((e)=>{
+				//toastMessage(e);
+			});
+		case METHOD.DELETE:
+			return axios.delete(mockUrl(url), params, config).then((res) => res?.data).catch((e)=>{
+				//toastMessage(e);
+			});
+		case METHOD.PUT:
+			return axios.put(mockUrl(url), params, config).then((res) => res?.data).catch((e)=>{
+				//toastMessage(e);
+			});
+		default:
+			return axios.get(mockUrl(url), { params, ...config }).then((res) => res?.data);
+	}
 }
 
 async function merge(ary) {
