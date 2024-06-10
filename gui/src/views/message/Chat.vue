@@ -3,6 +3,8 @@ import { ref, onMounted,onActivated,watch, computed } from "vue";
 import ChatService from '@/service/ChatService';
 import { useStore } from 'vuex';
 import 'deep-chat';
+import gptSvg from "@/assets/img/gpt.png";
+import userSvg from "@/assets/img/user.png";
 /*
 	{"files": [{
 		src: "data:image/gif;base64...",
@@ -15,7 +17,7 @@ import 'deep-chat';
 	}], "role": "ai"},
 */
 const emits = defineEmits(['back','ep']);
-const props = defineProps(['target','pid']);
+const props = defineProps(['room']);
 const store = useStore();
 const chatService = new ChatService();
 const initialMessages = ref([]);
@@ -39,12 +41,22 @@ const sendMessage = (e) => {
 		console.log(e.detail.message)
 	}
 }
+const getRole = (ep) => {
+	switch (ep){
+		case selectedMesh.value?.agent?.id:
+			return 'user';
+		case 'gpt':
+			return 'ai';
+		default:
+			return 'ep';
+	}
+}
 const loaddata = () => {
 	const _initialMessages = [];
-	if(!!props.target?.pid){
+	if(!!props.room?.id){
 		chatService.getRoomDetail({
 			mesh: selectedMesh.value?.name,
-			room: props.target?.pid
+			room: props.room?.id
 		}).then(res=>{
 			if(!!chatReady.value){
 				chat.value.clearMessages();
@@ -54,7 +66,7 @@ const loaddata = () => {
 					// alert(2)
 					_initialMessages.push({
 						...msg,
-						"role": msg.endpoint == selectedMesh.value?.agent?.id ? 'user' : 'ai'
+						"role": getRole(msg.endpoint)
 					})
 				})
 			}
@@ -72,7 +84,7 @@ const loaddata = () => {
 		
 	}
 }
-watch(()=>props.target,()=>{
+watch(()=>props.room,()=>{
 	loaddata()
 },{
 	deep:true,
@@ -181,15 +193,58 @@ const inputStyle = computed(() => {
 })
 const hasMediaDevices = computed(() => !!navigator.mediaDevices);
 const openEp = () => {
-	emits('ep',props.target?.ep);
+	emits('ep',props.room?.target?.ep);
 }
+const avatarStyle = {"avatar":{"position":"relative","top":"-5px","width": "30px","height": "30px"}};
+const avatars = ref({
+	"ai": {"src": gptSvg,"styles":avatarStyle},
+	"default": {"src": userSvg,"styles":avatarStyle},
+	"ep": {"src": userSvg,"styles":avatarStyle},
+})
+const request = ref({
+	handler: (body, signals) => {
+		try {
+			if(body?.messages[0]){
+				chatService.sendMessage({
+					mesh: selectedMesh.value?.name,
+					room: props.room?.id,
+					body: {
+						...body?.messages[0],
+						endpoint: props.room?.target?.ep,
+						text: "Hey, how are you?", 
+						time: new Date().getTime(),
+						files: [{
+							src: "data:image/gif;base64...",
+							ref: null,//File{...}
+							type: "image"
+						},{
+							src: "npm.txt",
+							ref: null,//File{...}
+							type: "any"
+						}]
+					}
+				}).then(res=>{
+					// signals.onResponse({...body?.messages[0],overwrite: true});
+				});
+			}else{
+				
+				signals.onResponse({error: 'No message'});
+			}
+		} catch (e) {
+			signals.onResponse({error: 'Error'}); // displays an error message
+		}
+	}
+})
 </script>
 
 <template>
 	<AppHeader :back="back">
-	    <template #center v-if="props.target?.ep">
-				<Status :run="props.target.ep?.online" />
-	      <b>{{props.target.ep?.name}} ({{props.target.ep?.username}})</b>
+	    <template #center v-if="props.room?.target?.type=='single'">
+				<Status :run="props.room?.target.ep?.online" />
+	      <b>{{props.room?.name}}</b>
+	    </template>
+	    <template #center v-else>
+	      <b>{{props.room?.name}}</b>
 	    </template>
 	
 	    <template #end> 
@@ -206,15 +261,19 @@ const openEp = () => {
 		:attachmentContainerStyle='{
 			"backgroundColor": "rgba(230,230,230,0.5)","top": "-45px"
 		}'
+		
+		:avatars='avatars'
 		:dragAndDrop='{"backgroundColor": "#80ff704d", "border": "5px dashed #52c360"}'
 		style="width: 100%;flex: 1;border: none"
 		:style="{'height': `${viewHeight}px`}"
 	  v-model:initialMessages="initialMessages"
+		:displayLoadingBubble="false"
 		:messageStyles='{
 			"default": {
-				"user": {"bubble": {"backgroundColor": "#9855f7"}}
+				"user": {"bubble": {"backgroundColor": "#9855f7"}},
+				"ep": {"bubble": {"backgroundColor": "#f5f5f5"}},
+				"ai": {"bubble": {"backgroundColor": "#f5f5f5"}},
 		}}'
-		:avatars="true"
 		:inputAreaStyle='{"backgroundColor": "#F4F6F7"}'
 		:textInput="inputStyle"
 		auxiliaryStyle="
@@ -258,8 +317,9 @@ const openEp = () => {
 				}
 			}
 		}'
-		:demo="true"
-		:stream="true"
+		:demo='{"displayLoadingBubble": false}'
+		:stream="false"
+		:request="props.room?.id=='gpt'?null:request"
 		:submitButtonStyles="submitStyle('inside-right','10px')"
 		:microphone="hasMediaDevices?micStyle('inside-right','40px'):false"
 		:mixedFiles="menuStyle('inside-left','40px')"

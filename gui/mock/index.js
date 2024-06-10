@@ -47,6 +47,7 @@ export default [
 			},{
 				// group id custom
 				id: 2,
+				name: 'Group A',
 				target: {
 					type: 'group',
 					//value is endpoint id
@@ -102,7 +103,18 @@ export default [
 		// if set [date] filter, no need pagging
 		response: ({query}) => {
 			console.log(query)
-			if(query.room == 1){
+			if(query.room == 'gpt'){
+				return {
+					id: 'gpt',
+					name: 'Chat GPT',
+					target: {
+						type: 'gpt',
+					},
+					history: [
+						{	id:1,text:"Hello, I'm GPT3.5", time: new Date().getTime(), endpoint:"gpt" },
+					]
+				}
+			} else if(query.room == 1){
 				return {
 					id: 1,
 					target: {

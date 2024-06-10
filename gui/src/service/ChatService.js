@@ -8,4 +8,11 @@ export default class ChatService {
 	getRoomDetail({mesh,room}) {
 		return mock(`/api/meshes/${mesh}/rooms/${room}`);
 	}
+	sendMessage({
+		mesh,
+		room,
+		body
+	}) {
+		return mock(`/api/meshes/${mesh}/rooms/${room}/send`,"POST",body);
+	}
 }

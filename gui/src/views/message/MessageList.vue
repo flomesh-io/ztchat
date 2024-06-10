@@ -37,7 +37,7 @@ const aiRooms = [
 		id: 'gpt',
 		name: 'Chat GPT',
 		target: {
-			type: 'ai',
+			type: 'gpt',
 		},
 		last:{
 			text:'Hey, how are you?',
@@ -103,12 +103,21 @@ const newChat = () => {
 	const roomid = eps.join(",");
 	const findroom = rooms.value.filter(room => room.id == roomid);
 	if(!!findroom){
-		selectRoom.value = { pid: findroom?.id, ep:endpointMap.value[eps[0]] }
+		selectRoom.value = findroom;
 	} else {
 		selectRoom.value = { ep: endpointMap.value[eps[0]] };
 	}
 	selectedNewChatEp.value = {};
 	visibleEpSelect.value = false;
+}
+const openChat = (item) => {
+	selectRoom.value = null;
+	setTimeout(()=>{
+		selectRoom.value = {
+			...item,
+			name:item.target?.type=='single'?`${endpointMap.value[item.target?.ep].name} (${endpointMap.value[item.target?.ep].username})`:item.name
+		}
+	},100)
 }
 </script>
 
@@ -146,7 +155,7 @@ const newChat = () => {
 		</Dialog>
 		<DataView class="message-list" :value="rooms">
 		    <template #list="slotProps">
-		        <div @click="selectRoom = { pid: item?.id, ep:endpointMap[item.target?.ep||item.target?.eps[0]] }" class="flex flex-col message-item pointer" v-for="(item, index) in slotProps.items" :key="index">
+		        <div @click="openChat(item)" class="flex flex-col message-item pointer" v-for="(item, index) in slotProps.items" :key="index">
 							<div class="flex flex-col py-3 px-3 gap-4 w-full" :class="{ 'border-t border-surface-200 dark:border-surface-700': index !== 0 }">
 									<div class="md:w-40 relative">
 										<Badge v-if="item.unread>0" :value="item.unread" severity="danger" class="absolute" style="right: -10px;top:-10px"/>
@@ -188,7 +197,7 @@ const newChat = () => {
 		</div>
 		<div v-else-if="selectRoom" class="flex-item">
 			<div class="shadow mobile-fixed" >
-				<Chat :target="selectRoom" @back="() => selectRoom=false" @ep="(ep) => selectEp = ep"/>
+				<Chat :room="selectRoom" @back="() => selectRoom=false" @ep="(ep) => selectEp = ep"/>
 			</div>
 		</div>
 	</div>
