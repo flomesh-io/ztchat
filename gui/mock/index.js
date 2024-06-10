@@ -10,7 +10,7 @@ export default [
 				mesh: 1,
 				room: 1,
 				sender: 'ep name | room name',
-				{	id:1,text:'Hey, how are you?', time: new Date().getTime(), endpoint:"a" },
+				message: {	id:1,text:'Hey, how are you?', time: new Date().getTime(), endpoint:"a" },
 			}
 		}
 	},

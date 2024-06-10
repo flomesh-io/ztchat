@@ -7,6 +7,7 @@ import ChatService from '@/service/ChatService';
 import EndpointDetail from '../mesh/EndpointDetail.vue'
 import PipyProxyService from '@/service/PipyProxyService';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import gptSvg from "@/assets/img/gpt.png";
 dayjs.locale('en', {
   relativeTime: {
     future: 'in %s',
@@ -31,8 +32,20 @@ const pipyProxyService = new PipyProxyService();
 const selectedMesh = computed(() => {
 	return store.getters["account/selectedMesh"]
 });
-const rooms = ref([
-]);
+const aiRooms = [
+	{
+		id: 'gpt',
+		name: 'Chat GPT',
+		target: {
+			type: 'ai',
+		},
+		last:{
+			text:'Hey, how are you?',
+			time: new Date().getTime()
+		}
+	}
+];
+const rooms = ref(aiRooms);
 onMounted(()=>{
 	getEndpoints();
 	loadrooms();
@@ -69,7 +82,7 @@ const getEndpoints = () => {
 
 const loadrooms = () => {
 	chatService.getRooms(selectedMesh.value?.name).then(res=>{
-		rooms.value = res;
+		rooms.value = aiRooms.concat(res);
 	});
 }
 
@@ -137,15 +150,22 @@ const newChat = () => {
 							<div class="flex flex-col py-3 px-3 gap-4 w-full" :class="{ 'border-t border-surface-200 dark:border-surface-700': index !== 0 }">
 									<div class="md:w-40 relative">
 										<Badge v-if="item.unread>0" :value="item.unread" severity="danger" class="absolute" style="right: -10px;top:-10px"/>
-										<Avatar icon="pi pi-user" size="large" style="background-color: #ece9fc; color: #2a1261" />
+										<img v-if="item.id=='gpt'" :src="gptSvg" width="42" height="42" />
+										<Avatar v-else-if="item.target?.type == 'group'" icon="pi pi-user" size="large" style="background-color: #ece9fc; color: #2a1261" />
+										<Avatar v-else icon="pi pi-user" size="large" style="background-color: #ece9fc; color: #2a1261" />
 										
 									</div>
 									<div class="flex-item">
-											<div class="flex" v-if="item.target">
+											<div class="flex" v-if="item.target?.type == 'single'">
 												<div class="flex-item" v-if="endpointMap[item.target?.ep||item.target?.eps[0]]">
 													<b>{{endpointMap[item.target?.ep||item.target?.eps[0]].name}} ({{endpointMap[item.target?.ep||item.target?.eps[0]].username}})</b>
 												</div>
 												<Status :run="true" style="top: 7px;margin-right: 0;right: -10px;"/>
+											</div>
+											<div class="flex" v-else>
+												<div class="flex-item" >
+													<b>{{item.name}}</b>
+												</div>
 											</div>
 											<div class="flex mt-1">
 												<div class="flex-item" >
