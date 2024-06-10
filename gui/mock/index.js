@@ -47,6 +47,35 @@ export default [
 		}
 	},
 	{
+		// post room detail
+		method: "post",
+		url: "/mock/api/meshes/:mesh/rooms",
+		response: ({query}) => {
+			console.log(query)
+			if(query.target == 'single'){
+				return {
+					//single room id = ep id
+					id: "aaaa-aaa-aaa",
+					target: {
+						type: 'single',//single | group
+						//value is endpoint id
+						ep: "aaaa-aaa-aaa"
+					},
+				}
+			} else {
+				return {
+					//group room id = eps id(0,4) join ","
+					id: "aaaa,bbbb",
+					target: {
+						type: 'group',
+						//value is endpoint id
+						eps: ["aaaa-aaa-aaa","bbbb-bbb-bbb"]
+					},
+				}
+			}
+		}
+	},
+	{
 		// get room detail by room id
 		method: "get",
 		url: "/mock/api/meshes/:mesh/rooms/:room",
@@ -58,7 +87,7 @@ export default [
 					target: {
 						type: 'single',
 						//value is endpoint id
-						value: "a"
+						ep: "a"
 					},
 					history: [
 						{	id:1,text:'Hey, how are you?', time: new Date().getTime(), endpoint:"a" },
