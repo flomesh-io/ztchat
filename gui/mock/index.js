@@ -56,6 +56,7 @@ export default [
 				return {
 					//single room id = ep id
 					id: "aaaa-aaa-aaa",
+					name: "single no need name",
 					target: {
 						type: 'single',//single | group
 						//value is endpoint id
@@ -64,8 +65,9 @@ export default [
 				}
 			} else {
 				return {
-					//group room id = eps id(0,4) join ","
-					id: "aaaa,bbbb",
+					//group room id = random uid
+					id: "ae00dsada1hg000001fjn1",
+					name: "ep A name,ep B name,ep C name",
 					target: {
 						type: 'group',
 						//value is endpoint id
@@ -79,6 +81,10 @@ export default [
 		// get room detail by room id
 		method: "get",
 		url: "/mock/api/meshes/:mesh/rooms/:room",
+		// params 1: page=1 (default), 
+		// params 2: size=50 (default), 
+		// params 3: date=20240120
+		// if set [date] filter, no need pagging
 		response: ({query}) => {
 			console.log(query)
 			if(query.room == 1){
@@ -153,7 +159,7 @@ export default [
 		}
 	},
 	{
-		// delete message by message id
+		// delete message by id
 		method: "delete",
 		url: "/mock/api/meshes/:mesh/rooms/:room/history/:id",
 		response: () => {
