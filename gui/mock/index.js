@@ -1,5 +1,20 @@
 export default [
 	{
+		// watching new message, only use to alert sys notice, and make pull other api hooks
+		method: "socket", //sock or like @microsoft/fetch-event-source,
+		// But not sure, need to discuss it
+		url: "/mock/api/watch/notice",
+		response: () => {
+			return {
+				type: 'message',
+				mesh: 1,
+				room: 1,
+				sender: 'ep name | room name',
+				{	id:1,text:'Hey, how are you?', time: new Date().getTime(), endpoint:"a" },
+			}
+		}
+	},
+	{
 		// get room list by mesh
 		method: "get",
 		url: "/mock/api/meshes/:mesh/rooms",
