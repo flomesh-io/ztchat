@@ -17,7 +17,7 @@ import userSvg from "@/assets/img/user.png";
 	}], "role": "ai"},
 */
 const emits = defineEmits(['back','ep']);
-const props = defineProps(['room']);
+const props = defineProps(['room','endpointMap']);
 const store = useStore();
 const chatService = new ChatService();
 const initialMessages = ref([]);
@@ -37,7 +37,7 @@ const chatRender = (e)=>{
 }
 const sendMessage = (e) => {
 	if(!e.detail.isInitial){
-		//post initialMessages.value.push(e.detail.message)
+		initialMessages.value.push(e.detail.message)
 		console.log(e.detail.message)
 	}
 }
@@ -48,7 +48,7 @@ const getRole = (ep) => {
 		case 'gpt':
 			return 'ai';
 		default:
-			return 'ep';
+			return ep;
 	}
 }
 const loaddata = () => {
@@ -63,7 +63,6 @@ const loaddata = () => {
 			}
 			if(res.history){
 				res.history.forEach(msg=>{
-					// alert(2)
 					_initialMessages.push({
 						...msg,
 						"role": getRole(msg.endpoint)
@@ -195,12 +194,6 @@ const hasMediaDevices = computed(() => !!navigator.mediaDevices);
 const openEp = () => {
 	emits('ep',props.room?.target?.ep);
 }
-const avatarStyle = {"avatar":{"position":"relative","top":"-5px","width": "30px","height": "30px"}};
-const avatars = ref({
-	"ai": {"src": gptSvg,"styles":avatarStyle},
-	"default": {"src": userSvg,"styles":avatarStyle},
-	"ep": {"src": userSvg,"styles":avatarStyle},
-})
 const request = ref({
 	handler: (body, signals) => {
 		try {
@@ -224,7 +217,7 @@ const request = ref({
 						}]
 					}
 				}).then(res=>{
-					// signals.onResponse({...body?.messages[0],overwrite: true});
+					signals.onResponse({...body?.messages[0],overwrite: true});
 				});
 			}else{
 				
@@ -234,6 +227,55 @@ const request = ref({
 			signals.onResponse({error: 'Error'}); // displays an error message
 		}
 	}
+})
+
+const avatarStyle = {"avatar":{"position":"relative","width": "30px","height": "30px"}};
+const avatars = computed(() => {
+	const rtn = {
+	}
+	
+	initialMessages.value.forEach((_message) => {
+		rtn[_message.role] = {
+			"src": userSvg, 
+			"styles":avatarStyle
+		}
+	})
+	rtn.ai = {"src": gptSvg,"styles":avatarStyle};
+	rtn.user = {"src": userSvg,"styles":avatarStyle};
+	return rtn;
+})
+
+const messageStyles = computed(() => {
+	const rtn = {
+		"default": {}
+	}
+	initialMessages.value.forEach((_message) => {
+		rtn.default[_message.role] = {
+			"bubble": {"backgroundColor": "#f5f5f5","marginTop":"30px"},
+		}
+	})
+	rtn.default.ai = {"bubble": {"backgroundColor": "#f5f5f5","marginTop":"30px"}};
+	rtn.default.user = {"bubble": {"backgroundColor": "#9855f7","marginTop":"30px"}};
+	return rtn
+})
+const names = computed(() => {
+	let rtn = {}
+	initialMessages.value.forEach((_message) => {
+		rtn[_message.role] = {
+			"text": props.endpointMap[_message.role]?.name || _message.role,
+			"style": {"position": "absolute", "marginTop": "10px", "fontSize": "12px","left": "70px"}
+		}
+	})
+	rtn.ai = {
+		"text": "GPT",
+		"style": {"position": "absolute", "marginTop": "10px", "fontSize": "12px","left": "70px"}
+	};
+	rtn.user = {
+		"text": props.endpointMap[selectedMesh.value?.agent?.id]?.name,
+		"style": {"position": "absolute", "marginTop": "10px", "fontSize": "12px","right": "70px"}
+	};
+	return rtn
+	
 })
 </script>
 
@@ -256,6 +298,7 @@ const request = ref({
 	<deep-chat
 		:textToSpeech='{"volume": 0.9}'
 		ref="chat"
+		:names="names"
 		@render="chatRender"
 		@new-message="sendMessage"
 		:attachmentContainerStyle='{
@@ -268,17 +311,12 @@ const request = ref({
 		:style="{'height': `${viewHeight}px`}"
 	  v-model:initialMessages="initialMessages"
 		:displayLoadingBubble="false"
-		:messageStyles='{
-			"default": {
-				"user": {"bubble": {"backgroundColor": "#9855f7"}},
-				"ep": {"bubble": {"backgroundColor": "#f5f5f5"}},
-				"ai": {"bubble": {"backgroundColor": "#f5f5f5"}},
-		}}'
+		:messageStyles='messageStyles'
 		:inputAreaStyle='{"backgroundColor": "#F4F6F7"}'
 		:textInput="inputStyle"
 		auxiliaryStyle="
 			::-webkit-scrollbar-thumb {
-				background-color: #9855f7;
+				background-color: #f5f5f5;
 		}"
 		:dropupStyles='false?false:{
 			"button": {

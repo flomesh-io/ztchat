@@ -160,7 +160,7 @@ const openChat = (item) => {
 									<div class="md:w-40 relative">
 										<Badge v-if="item.unread>0" :value="item.unread" severity="danger" class="absolute" style="right: -10px;top:-10px"/>
 										<img v-if="item.id=='gpt'" :src="gptSvg" width="42" height="42" />
-										<Avatar v-else-if="item.target?.type == 'group'" icon="pi pi-user" size="large" style="background-color: #ece9fc; color: #2a1261" />
+										<Avatar v-else-if="item.target?.type == 'group'" icon="pi pi-users" size="large" style="background-color: #ece9fc; color: #2a1261" />
 										<Avatar v-else icon="pi pi-user" size="large" style="background-color: #ece9fc; color: #2a1261" />
 										
 									</div>
@@ -197,7 +197,7 @@ const openChat = (item) => {
 		</div>
 		<div v-else-if="selectRoom" class="flex-item">
 			<div class="shadow mobile-fixed" >
-				<Chat :room="selectRoom" @back="() => selectRoom=false" @ep="(ep) => selectEp = ep"/>
+				<Chat :endpointMap="endpointMap" :room="selectRoom" @back="() => selectRoom=false" @ep="(ep) => selectEp = ep"/>
 			</div>
 		</div>
 	</div>
