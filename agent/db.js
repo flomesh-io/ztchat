@@ -37,6 +37,16 @@ function open(pathname, reset) {
       service TEXT NOT NULL
     )
   `)
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS rooms (
+      mesh TEXT NOT NULL,
+      id TEXT NOT NULL,
+      name TEXT,
+      roomType TEXT,
+      endpoints TEXT
+    )
+  `)
 }
 
 function recordToMesh(rec) {
@@ -249,6 +259,44 @@ function delPort(mesh, ip, proto, port) {
     .exec()
 }
 
+function createRoom(mesh, id, name, roomType, endpoints) {
+  db.sql('INSERT INTO rooms(mesh, id, name, roomType, endpoints) VALUES(?, ?, ?, ?, ?)')
+  .bind(1, mesh)
+  .bind(2, id)
+  .bind(3, name)
+  .bind(4, roomType)
+  .bind(5, endpoints)
+  .exec()
+}
+
+function getRoom(id) {
+  return (
+    db.sql('SELECT * FROM rooms WHERE mesh = ? AND id = ?')
+      .bind(1, mesh)
+      .bind(2, ip)
+      .bind(3, proto)
+      .bind(4, port)
+      .exec()
+      .slice(0, 1)
+      .map(recordToRoom)[0]
+  )
+}
+function recordToRoom(rec) {
+  var room = {
+    mesh: rec.mesh,
+    id: rec.id,
+    name: rec.name,
+    roomType: rec.roomType,
+    target: {type: rec.roomType}
+  }
+  if (rec.roomType == "single") {
+    room.target.ep = rec.endpoints
+  } else {
+    room.target.eps = rec.endpoints.split(",")
+  }
+  return room
+}
+
 export default {
   open,
   allMeshes,
@@ -263,4 +311,6 @@ export default {
   getPort,
   setPort,
   delPort,
+  createRoom,
+  getRoom,
 }

@@ -285,6 +285,15 @@ var routes = Object.entries({
     },
   },
 
+  '/api/meshes/{mesh}/rooms': {
+    'POST': function ({ mesh, req}) {
+      var body = JSON.decode(req.body)
+      return api.allPorts(mesh, body).then(
+        ret => response(200, ret)
+      )
+    },
+  },
+
 }).map(
   function ([path, methods]) {
     var match = new http.Match(path)

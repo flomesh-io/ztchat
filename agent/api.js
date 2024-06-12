@@ -219,6 +219,18 @@ function delPort(mesh, ep, ip, proto, port) {
   }
 }
 
+function createRoom(mesh, body) {
+  var endpoints = null
+  if (body.target.type == "single") {
+    endpoints = body.target.ep
+  } else {
+    endpoints = body.target.eps.join(",")
+  }
+  var id = endpoints
+  db.createRoom(mesh, id, body.name, body.target.type, endpoints)
+  return getRoom(id)
+}
+
 export default {
   init,
   allMeshes,
