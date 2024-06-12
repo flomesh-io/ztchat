@@ -263,16 +263,16 @@ const names = computed(() => {
 	initialMessages.value.forEach((_message) => {
 		rtn[_message.role] = {
 			"text": props.endpointMap[_message.role]?.name || _message.role,
-			"style": {"position": "absolute", "marginTop": "10px", "fontSize": "12px","left": "70px"}
+			"style": {"position":"relative","width": "0","whiteSpace":"nowrap","wordBreak":"keep-all", "marginTop": "10px", "fontSize": "12px","left": "10px"}
 		}
 	})
 	rtn.ai = {
 		"text": "GPT",
-		"style": {"position": "absolute", "marginTop": "10px", "fontSize": "12px","left": "70px"}
+		"style": {"position":"relative","width": "0","whiteSpace":"nowrap","wordBreak":"keep-all", "marginTop": "10px", "fontSize": "12px","left": "10px"}
 	};
 	rtn.user = {
 		"text": props.endpointMap[selectedMesh.value?.agent?.id]?.name,
-		"style": {"position": "absolute", "marginTop": "10px", "fontSize": "12px","right": "70px"}
+		"style": {"position":"relative","width": "0","whiteSpace":"nowrap","wordBreak":"keep-all", "marginTop": "10px", "fontSize": "12px","right": "40px"}
 	};
 	return rtn
 	
