@@ -122,8 +122,8 @@ const openChat = (item) => {
 </script>
 
 <template>
-	<div class="flex flex-row">
-		<div :class="{'w-22rem':!!selectRoom,'w-full':!selectRoom,'mobile-hidden':!!selectRoom}">
+	<div class="flex flex-row min-h-screen">
+		<div class="relative h-full" :class="{'w-22rem':!!selectRoom,'w-full':!selectRoom,'mobile-hidden':!!selectRoom}">
 				
 		<AppHeader :main="true">
 				<template #center>
@@ -153,6 +153,7 @@ const openChat = (item) => {
 					</template>
 				</Tree>
 		</Dialog>
+		<ScrollPanel class="w-full absolute" style="top:35px;bottom: 0;" >
 		<DataView class="message-list" :value="rooms">
 		    <template #list="slotProps">
 		        <div @click="openChat(item)" class="flex flex-col message-item pointer" v-for="(item, index) in slotProps.items" :key="index">
@@ -188,7 +189,8 @@ const openChat = (item) => {
 							</div>
 		        </div>
 		    </template>
-		</DataView>
+			</DataView>
+			</ScrollPanel>
 		</div>
 		<div class="flex-item" v-if="!!selectEp">
 			<div class="shadow mobile-fixed">
