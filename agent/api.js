@@ -228,9 +228,12 @@ function createRoom(mesh, body) {
   }
   var id = endpoints
   db.createRoom(mesh, id, body.name, body.target.type, endpoints)
-  return getRoom(id)
+  return db.getRoom(id)
 }
 
+function getRooms(mesh, body) {
+  return db.getRooms(mesh)
+}
 export default {
   init,
   allMeshes,
@@ -249,4 +252,6 @@ export default {
   getPort,
   setPort,
   delPort,
+  createRoom,
+  getRooms,
 }

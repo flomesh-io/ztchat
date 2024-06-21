@@ -47,6 +47,21 @@ function open(pathname, reset) {
       endpoints TEXT
     )
   `)
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS messages (
+      mesh TEXT NOT NULL,
+      id TEXT NOT NULL,
+      roomId TEXT,
+      read INTEGER,
+      unread INTEGER,
+      send INTEGER,
+      text TEXT,
+      files TEXT,
+      time INTEGER,
+      endpoint TEXT
+    )
+  `)
 }
 
 function recordToMesh(rec) {
@@ -281,6 +296,22 @@ function getRoom(id) {
       .map(recordToRoom)[0]
   )
 }
+
+function getRooms(mesh) {
+  return (
+    db.sql(`
+SELECT r.*, m.* FROM rooms r
+JOIN (
+	SELECT *, ROW_NUMBER() OVER (PARTITION BY roomid ORDER BY time DESC) AS rn
+    FROM messages 
+) m ON r.id = m.roomId 
+WHERE r.mesh = ?;`)
+      .bind(1, mesh)
+      .exec()
+      .map(recordToRoom)
+  )
+}
+
 function recordToRoom(rec) {
   var room = {
     mesh: rec.mesh,
@@ -293,6 +324,17 @@ function recordToRoom(rec) {
     room.target.ep = rec.endpoints
   } else {
     room.target.eps = rec.endpoints.split(",")
+  }
+
+  if (rec.endpoint) {
+    room.unread = rec.unread
+    room.time = rec.time
+    last = {}
+    if (rec.files) {
+      last.text = rec.files.split(",")[0].split(".")[rec.files.split(",")[0].split(".").length -1]
+    } else {
+      last.text = rec.text
+    }
   }
   return room
 }
@@ -313,4 +355,5 @@ export default {
   delPort,
   createRoom,
   getRoom,
+  getRooms,
 }

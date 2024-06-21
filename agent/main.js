@@ -286,13 +286,19 @@ var routes = Object.entries({
   },
 
   '/api/meshes/{mesh}/rooms': {
+    'GET': function ({ mesh }) {
+      return api.getRooms(mesh).then(
+        ret => response(200, ret)
+      )
+    },
     'POST': function ({ mesh, req}) {
       var body = JSON.decode(req.body)
-      return api.allPorts(mesh, body).then(
+      return api.createRoom(mesh, body).then(
         ret => response(200, ret)
       )
     },
   },
+
 
 }).map(
   function ([path, methods]) {
