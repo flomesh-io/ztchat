@@ -299,6 +299,14 @@ var routes = Object.entries({
     },
   },
 
+  '/api/meshes/{mesh}/rooms/{room}': {
+    'GET': function ({ mesh, room, req }) {
+      return api.getRoom(mesh, room, req.params).then(
+        ret => response(200, ret)
+      )
+    },
+  },
+
 
 }).map(
   function ([path, methods]) {

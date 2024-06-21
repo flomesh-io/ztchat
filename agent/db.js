@@ -284,13 +284,11 @@ function createRoom(mesh, id, name, roomType, endpoints) {
   .exec()
 }
 
-function getRoom(id) {
+function getRoom(mesh, id) {
   return (
     db.sql('SELECT * FROM rooms WHERE mesh = ? AND id = ?')
       .bind(1, mesh)
       .bind(2, ip)
-      .bind(3, proto)
-      .bind(4, port)
       .exec()
       .slice(0, 1)
       .map(recordToRoom)[0]
@@ -331,7 +329,8 @@ function recordToRoom(rec) {
     room.time = rec.time
     last = {}
     if (rec.files) {
-      last.text = rec.files.split(",")[0].split(".")[rec.files.split(",")[0].split(".").length -1]
+      var files = JSON.parse(rec.files)
+      last.text = `[${files?.[0].type}]`
     } else {
       last.text = rec.text
     }
@@ -339,6 +338,49 @@ function recordToRoom(rec) {
   return room
 }
 
+function getMessages(room, params) {
+  var sql = "SELECT * FROM messages WHERE roomId=? ORDER BY time DESC limit 0 OFFSET 1"
+  if (params?.date) {
+    return (
+      db.sql("SELECT * FROM messages WHERE roomId=? AND strftime('%Y%m%d', time)=? ORDER BY time DESC")
+      .bind(1, room)
+      .bind(2, params?.date)
+      .exec()
+      .map(recordToMessage)
+      .reverse()
+    )
+  } else {
+    var offset = 0
+    var limit = 50
+    if (params?.page && params?.size) {
+      limit = params?.size
+      offset = (params?.page * params?.size) - 1 
+    }
+
+    return (
+      db.sql("SELECT * FROM messages WHERE roomId=? ORDER BY time DESC LIMIT ? OFFSET ?")
+      .bind(1, room)
+      .bind(2, limit)
+      .bind(2, offset)
+      .exec()
+      .map(recordToMessage)
+      .reverse()
+    )
+  }
+}
+function recordToMessage(rec) {
+  var room = {
+    id: rec.id,
+    time: rec.time,
+    endpoint: rec.endpoint,
+  }
+  if (rec.files) {
+    room.files = JSON.parse(rec.files)
+  } else {
+    room.text = rec.text
+  }
+  return room
+}
 export default {
   open,
   allMeshes,
@@ -356,4 +398,5 @@ export default {
   createRoom,
   getRoom,
   getRooms,
+  getMessages,
 }
