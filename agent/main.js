@@ -305,8 +305,36 @@ var routes = Object.entries({
         ret => response(200, ret)
       )
     },
+    'DELETE': function ({ mesh, room}) {
+      return api.deleteRoom(mesh, room).then(
+        ret => response(200, ret)
+      )
+    },
   },
 
+  '/api/meshes/{mesh}/rooms/{room}/read': {
+    'POST': function ({ mesh, room}) {
+      return api.readMessage(mesh, room).then(
+        ret => response(200, ret)
+      )
+    },
+  },
+
+  '/api/meshes/{mesh}/rooms/{room}/history/{id}': {
+    'POST': function ({ mesh, room}) {
+      return api.deleteMessage(mesh, room).then(
+        ret => response(200, ret)
+      )
+    },
+  },
+
+  '/api/meshes/{mesh}/rooms/{room}/files': {
+    'GET': function ({ mesh, room}) {
+      return api.getRoomFiles(mesh, room).then(
+        ret => response(200, ret)
+      )
+    },
+  },
 
 }).map(
   function ([path, methods]) {

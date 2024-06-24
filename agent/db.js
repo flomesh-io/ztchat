@@ -44,7 +44,8 @@ function open(pathname, reset) {
       id TEXT NOT NULL,
       name TEXT,
       roomType TEXT,
-      endpoints TEXT
+      endpoints TEXT,
+      unreadCount INTEGER
     )
   `)
 
@@ -54,7 +55,6 @@ function open(pathname, reset) {
       id TEXT NOT NULL,
       roomId TEXT,
       read INTEGER,
-      unread INTEGER,
       send INTEGER,
       text TEXT,
       files TEXT,
@@ -325,7 +325,7 @@ function recordToRoom(rec) {
   }
 
   if (rec.endpoint) {
-    room.unread = rec.unread
+    room.unread = rec.unreadCount
     room.time = rec.time
     last = {}
     if (rec.files) {
@@ -338,13 +338,14 @@ function recordToRoom(rec) {
   return room
 }
 
-function getMessages(room, params) {
+function getMessages(mesh, room, params, onlyFiles) {
   var sql = "SELECT * FROM messages WHERE roomId=? ORDER BY time DESC limit 0 OFFSET 1"
   if (params?.date) {
     return (
-      db.sql("SELECT * FROM messages WHERE roomId=? AND strftime('%Y%m%d', time)=? ORDER BY time DESC")
-      .bind(1, room)
-      .bind(2, params?.date)
+      db.sql("SELECT * FROM messages WHERE mesh=? AND roomId=? AND strftime('%Y%m%d', time)=? ORDER BY time DESC")
+      .bind(1, mesh)
+      .bind(2, room)
+      .bind(3, params?.date)
       .exec()
       .map(recordToMessage)
       .reverse()
@@ -356,12 +357,18 @@ function getMessages(room, params) {
       limit = params?.size
       offset = (params?.page * params?.size) - 1 
     }
-
+    var sql = null;
+    if (onlyFiles) {
+      sql = "SELECT * FROM messages WHERE mesh=? AND roomId=? AND files IS NOT NULL ORDER BY time DESC LIMIT ? OFFSET ?"
+    } else {
+      sql = "SELECT * FROM messages WHERE mesh=? AND roomId=? ORDER BY time DESC LIMIT ? OFFSET ?"
+    }
     return (
-      db.sql("SELECT * FROM messages WHERE roomId=? ORDER BY time DESC LIMIT ? OFFSET ?")
-      .bind(1, room)
-      .bind(2, limit)
-      .bind(2, offset)
+      db.sql(sql)
+      .bind(1, mesh)
+      .bind(2, room)
+      .bind(3, limit)
+      .bind(4, offset)
       .exec()
       .map(recordToMessage)
       .reverse()
@@ -381,6 +388,34 @@ function recordToMessage(rec) {
   }
   return room
 }
+
+function readMessage(mesh, room) {
+  db.sql('UPDATE message SET read = 1 WHERE mesh = ? AND roomId = ?')
+    .bind(1, mesh)
+    .bind(2, room)
+    .exec()
+
+  db.sql('UPDATE room SET unreadCount = 0 WHERE mesh = ? AND id = ?')
+    .bind(1, mesh)
+    .bind(2, room)
+    .exec()
+}
+
+function deleteRoom(mesh, room) {
+  db.sql('DELETE FROM room WHERE mesh = ? AND id = ?')
+    .bind(1, mesh)
+    .bind(2, room)
+    .exec()
+}
+
+function deleteMessage(mesh, room, id) {
+  db.sql('DELETE FROM room WHERE mesh = ? AND roomId = ? AND id = ?')
+    .bind(1, mesh)
+    .bind(2, room)
+    .bind(2, id)
+    .exec()
+}
+
 export default {
   open,
   allMeshes,
@@ -399,4 +434,6 @@ export default {
   getRoom,
   getRooms,
   getMessages,
+  readMessage,
+  deleteRoom,
 }

@@ -240,6 +240,22 @@ function getRoom(mesh, id, params) {
   room.history = db.getMessages(mesh, id, params)
   return room
 }
+
+function getRoomFiles(mesh, id, params) {
+  return db.getMessages(mesh, id, params, true)
+}
+function readMessage(mesh, room) {
+  var room = db.readMessage(mesh, id)
+}
+
+function deleteRoom(mesh, room) {
+  var room = db.deleteRoom(mesh, room)
+}
+
+function deleteMessage(mesh, room) {
+  var room = db.deleteMessage(mesh, room, id)
+}
+
 export default {
   init,
   allMeshes,
@@ -260,5 +276,9 @@ export default {
   delPort,
   createRoom,
   getRoom,
+  getRoomFiles,
   getRooms,
+  readMessage,
+  deleteRoom,
+  deleteMessage,
 }
