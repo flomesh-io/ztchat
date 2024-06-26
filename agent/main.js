@@ -287,52 +287,53 @@ var routes = Object.entries({
 
   '/api/meshes/{mesh}/rooms': {
     'GET': function ({ mesh }) {
-      return api.getRooms(mesh).then(
-        ret => response(200, ret)
-      )
+      var rooms = api.getRooms(mesh)
+      return response(200, rooms)
     },
-    'POST': function ({ mesh, req}) {
+    'POST': function ({ mesh }, req) {
       var body = JSON.decode(req.body)
-      return api.createRoom(mesh, body).then(
-        ret => response(200, ret)
-      )
+      var room = api.createRoom(mesh, body)
+      return response(200, room)
     },
   },
 
   '/api/meshes/{mesh}/rooms/{room}': {
-    'GET': function ({ mesh, room, req }) {
-      return api.getRoom(mesh, room, req.params).then(
-        ret => response(200, ret)
-      )
+    'GET': function ({ mesh, room}, req ) {
+      var room = api.getRoom(mesh, room, req.params)
+      return response(200, room)
     },
     'DELETE': function ({ mesh, room}) {
-      return api.deleteRoom(mesh, room).then(
-        ret => response(200, ret)
-      )
+      api.deleteRoom(mesh, room)
+      return response(200, true)
     },
   },
 
   '/api/meshes/{mesh}/rooms/{room}/read': {
     'POST': function ({ mesh, room}) {
-      return api.readMessage(mesh, room).then(
-        ret => response(200, ret)
-      )
+      api.readMessage(mesh, room)
+      return response(200, true)
     },
   },
 
   '/api/meshes/{mesh}/rooms/{room}/history/{id}': {
-    'POST': function ({ mesh, room}) {
-      return api.deleteMessage(mesh, room).then(
-        ret => response(200, ret)
-      )
+    'POST': function ({ mesh, room, id}) {
+      api.deleteMessage(mesh, room, id)
+      return response(200, true)
     },
   },
 
   '/api/meshes/{mesh}/rooms/{room}/files': {
     'GET': function ({ mesh, room}) {
-      return api.getRoomFiles(mesh, room).then(
-        ret => response(200, ret)
-      )
+      var files = api.getRoomFiles(mesh, room)
+      return response(200, files)
+    },
+  },
+
+  '/api/meshes/{mesh}/rooms/{room}/send': {
+    'POST': function ({ mesh, room}, req) {
+      var body = JSON.decode(req.body)
+      var message = api.sendMessage(mesh, room, body)
+      return response(200, message)
     },
   },
 

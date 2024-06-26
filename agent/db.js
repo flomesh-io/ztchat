@@ -45,17 +45,17 @@ function open(pathname, reset) {
       name TEXT,
       roomType TEXT,
       endpoints TEXT,
-      unreadCount INTEGER
+      unreadCount INTEGER DEFAULT 0
     )
   `)
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       mesh TEXT NOT NULL,
-      id TEXT NOT NULL,
       roomId TEXT,
-      read INTEGER,
-      send INTEGER,
+      read INTEGER DEFAULT 0,
+      send INTEGER DEFAULT 0,
       text TEXT,
       files TEXT,
       time INTEGER,
@@ -284,11 +284,35 @@ function createRoom(mesh, id, name, roomType, endpoints) {
   .exec()
 }
 
+function createMessage(mesh, room, text, files, time, endpoint) {
+  db.sql('INSERT INTO messages(mesh, roomId, text, files, time, endpoint) VALUES(?, ?, ?, ?, ?, ?)')
+  .bind(1, mesh)
+  .bind(2, room)
+  .bind(3, text)
+  .bind(4, JSON.stringify(files))
+  .bind(5, time)
+  .bind(6, endpoint)
+  .exec()
+
+  db.sql('UPDATE rooms SET unreadCount = unreadCount + 1 WHERE mesh = ? AND id = ?')
+    .bind(1, mesh)
+    .bind(2, room)
+    .exec()
+
+  return (
+    db.sql('SELECT * FROM messages WHERE mesh = ? AND roomId = ? ORDER BY time DESC LIMIT 1')
+      .bind(1, mesh)
+      .bind(2, room)
+      .exec()
+      .slice(0, 1)
+      .map(recordToMessage)[0]
+  )
+}
 function getRoom(mesh, id) {
   return (
     db.sql('SELECT * FROM rooms WHERE mesh = ? AND id = ?')
       .bind(1, mesh)
-      .bind(2, ip)
+      .bind(2, id)
       .exec()
       .slice(0, 1)
       .map(recordToRoom)[0]
@@ -298,8 +322,8 @@ function getRoom(mesh, id) {
 function getRooms(mesh) {
   return (
     db.sql(`
-SELECT r.*, m.* FROM rooms r
-JOIN (
+SELECT r.*, m.id as messageId, m.time, m.text, m.files, m.endpoint FROM rooms r
+LEFT JOIN (
 	SELECT *, ROW_NUMBER() OVER (PARTITION BY roomid ORDER BY time DESC) AS rn
     FROM messages 
 ) m ON r.id = m.roomId 
@@ -316,7 +340,8 @@ function recordToRoom(rec) {
     id: rec.id,
     name: rec.name,
     roomType: rec.roomType,
-    target: {type: rec.roomType}
+    target: {type: rec.roomType},
+    unread: rec.unreadCount
   }
   if (rec.roomType == "single") {
     room.target.ep = rec.endpoints
@@ -325,9 +350,8 @@ function recordToRoom(rec) {
   }
 
   if (rec.endpoint) {
-    room.unread = rec.unreadCount
     room.time = rec.time
-    last = {}
+    var last = {}
     if (rec.files) {
       var files = JSON.parse(rec.files)
       last.text = `[${files?.[0].type}]`
@@ -390,29 +414,34 @@ function recordToMessage(rec) {
 }
 
 function readMessage(mesh, room) {
-  db.sql('UPDATE message SET read = 1 WHERE mesh = ? AND roomId = ?')
+  db.sql('UPDATE messages SET read = 1 WHERE mesh = ? AND roomId = ?')
     .bind(1, mesh)
     .bind(2, room)
     .exec()
 
-  db.sql('UPDATE room SET unreadCount = 0 WHERE mesh = ? AND id = ?')
+  db.sql('UPDATE rooms SET unreadCount = 0 WHERE mesh = ? AND id = ?')
     .bind(1, mesh)
     .bind(2, room)
     .exec()
 }
 
 function deleteRoom(mesh, room) {
-  db.sql('DELETE FROM room WHERE mesh = ? AND id = ?')
+  db.sql('DELETE FROM rooms WHERE mesh = ? AND id = ?')
+    .bind(1, mesh)
+    .bind(2, room)
+    .exec()
+  
+  db.sql('DELETE FROM messages WHERE mesh = ? AND roomId = ?')
     .bind(1, mesh)
     .bind(2, room)
     .exec()
 }
 
 function deleteMessage(mesh, room, id) {
-  db.sql('DELETE FROM room WHERE mesh = ? AND roomId = ? AND id = ?')
+  db.sql('DELETE FROM messages WHERE mesh = ? AND roomId = ? AND id = ?')
     .bind(1, mesh)
     .bind(2, room)
-    .bind(2, id)
+    .bind(3, id)
     .exec()
 }
 
@@ -436,4 +465,6 @@ export default {
   getMessages,
   readMessage,
   deleteRoom,
+  createMessage,
+  deleteMessage,
 }

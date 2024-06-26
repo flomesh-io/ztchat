@@ -221,17 +221,23 @@ function delPort(mesh, ep, ip, proto, port) {
 
 function createRoom(mesh, body) {
   var endpoints = null
+  var id = null
   if (body.target.type == "single") {
     endpoints = body.target.ep
+    id = endpoints
   } else {
     endpoints = body.target.eps.join(",")
+    id = algo.uuid()
   }
-  var id = endpoints
   db.createRoom(mesh, id, body.name, body.target.type, endpoints)
   return db.getRoom(mesh, id)
 }
 
-function getRooms(mesh, body) {
+function sendMessage(mesh, room, body) {
+  return db.createMessage(mesh, room, body.text, body.files, body.time, body.endpoint)
+}
+
+function getRooms(mesh) {
   return db.getRooms(mesh)
 }
 
@@ -245,15 +251,15 @@ function getRoomFiles(mesh, id, params) {
   return db.getMessages(mesh, id, params, true)
 }
 function readMessage(mesh, room) {
-  var room = db.readMessage(mesh, id)
+  db.readMessage(mesh, room)
 }
 
 function deleteRoom(mesh, room) {
-  var room = db.deleteRoom(mesh, room)
+  db.deleteRoom(mesh, room)
 }
 
-function deleteMessage(mesh, room) {
-  var room = db.deleteMessage(mesh, room, id)
+function deleteMessage(mesh, room, id) {
+  db.deleteMessage(mesh, room, id)
 }
 
 export default {
@@ -281,4 +287,5 @@ export default {
   readMessage,
   deleteRoom,
   deleteMessage,
+  sendMessage,
 }
