@@ -234,7 +234,7 @@ function createRoom(mesh, body) {
 }
 
 function sendMessage(mesh, room, body) {
-  return db.createMessage(mesh, room, body.text, body.files, body.time, body.endpoint)
+  return db.createMessage(mesh, room, body.text, body.files, body.endpoint)
 }
 
 function getRooms(mesh) {

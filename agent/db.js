@@ -58,7 +58,7 @@ function open(pathname, reset) {
       send INTEGER DEFAULT 0,
       text TEXT,
       files TEXT,
-      time INTEGER,
+      time TEXT,
       endpoint TEXT
     )
   `)
@@ -284,13 +284,13 @@ function createRoom(mesh, id, name, roomType, endpoints) {
   .exec()
 }
 
-function createMessage(mesh, room, text, files, time, endpoint) {
+function createMessage(mesh, room, text, files, endpoint) {
   db.sql('INSERT INTO messages(mesh, roomId, text, files, time, endpoint) VALUES(?, ?, ?, ?, ?, ?)')
   .bind(1, mesh)
   .bind(2, room)
   .bind(3, text)
   .bind(4, JSON.stringify(files))
-  .bind(5, time)
+  .bind(5, new Date().getTime().toString())
   .bind(6, endpoint)
   .exec()
 
