@@ -46,14 +46,6 @@ const aiRooms = [
 	}
 ];
 const rooms = ref(aiRooms);
-onMounted(()=>{
-	getEndpoints();
-	loadrooms();
-})
-onActivated(()=>{
-	getEndpoints();
-	loadrooms();
-})
 const endpointMap = ref({});
 const endpoints = ref([]);
 const getEndpoints = () => {
@@ -102,13 +94,31 @@ const newChat = () => {
 	const eps = Object.keys(selectedNewChatEp.value);
 	const roomid = eps.join(",");
 	const findroom = rooms.value.filter(room => room.id == roomid);
-	if(!!findroom){
+	if(!!findroom && findroom.length > 0){
 		selectRoom.value = findroom;
 	} else {
-		selectRoom.value = { ep: endpointMap.value[eps[0]] };
+		const ep = endpointMap.value[eps[0]];
+		const roomname = eps.length >1?'Group':`${ep.name} (${ep.username})`;
+		selectedNewChatEp.value = {};
+		visibleEpSelect.value = false;
+		chatService.createRoom({
+			mesh: selectedMesh.value?.name,
+			room: {
+				//single room id = ep id
+				id: roomid,
+				name: roomname,
+				target: {
+					type: eps.length >1?'group':'single',
+					//value is endpoint id
+					ep: eps.length >1?eps:eps[0]
+				},
+			}
+		}).then(res=>{
+			console.log("createRoom")
+			console.log(res);
+			selectRoom.value = { ep };
+		});
 	}
-	selectedNewChatEp.value = {};
-	visibleEpSelect.value = false;
 }
 const openChat = (item) => {
 	selectRoom.value = null;
@@ -119,6 +129,20 @@ const openChat = (item) => {
 		}
 	},100)
 }
+onActivated(()=>{
+	getEndpoints();
+	loadrooms();
+})
+
+watch(()=>selectedMesh,()=>{
+	if(selectedMesh.value){
+		getEndpoints();
+		loadrooms();
+	}
+},{
+	deep:true,
+	immediate:true
+})
 </script>
 
 <template>

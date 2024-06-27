@@ -1,4 +1,4 @@
-import { mock } from './common/request';
+import { mock, request } from './common/request';
 import toast from "@/utils/toast";
 import confirm from "@/utils/confirm";
 export default class ChatService {
@@ -7,6 +7,9 @@ export default class ChatService {
 	}
 	getRoomDetail({mesh,room}) {
 		return mock(`/api/meshes/${mesh}/rooms/${room}`);
+	}
+	createRoom({mesh,room}) {
+		return request(`/api/meshes/${mesh}/rooms`,"POST",room);
 	}
 	sendMessage({
 		mesh,
